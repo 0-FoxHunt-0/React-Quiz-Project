@@ -1,35 +1,63 @@
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, useReducer } from "react";
 import "./DateCounter.css";
 
+interface State {
+  count: number;
+  step: number;
+}
+
+type Action =
+  | { type: "increment" }
+  | { type: "decrement" }
+  | { type: "reset" }
+  | { type: "setCount"; payload: number }
+  | { type: "setSteps"; payload: number };
+
+const initialState: State = { count: 0, step: 1 };
+
+function reducer(state: State, action: Action): State {
+  switch (action.type) {
+    case "increment":
+      return { ...state, count: state.count + state.step };
+    case "decrement":
+      return { ...state, count: state.count - state.step };
+    case "reset":
+      return initialState;
+    case "setCount":
+      return { ...state, count: action.payload };
+    case "setSteps":
+      return { ...state, step: action.payload };
+    default:
+      console.log(state, action);
+      throw new Error("Unknown operand");
+  }
+}
+
 function DateCounter(): JSX.Element {
-  const [count, setCount] = useState<number>(0);
-  const [step, setStep] = useState<number>(1);
+  const [{ count, step }, dispatch] = useReducer(reducer, initialState);
 
   // This mutates the date object.
   const date: Date = new Date("june 21 2027");
   date.setDate(date.getDate() + count);
 
   const dec = function () {
-    // setCount((count) => count - 1);
-    setCount((count) => count - step);
+    dispatch({ type: "decrement" });
   };
 
   const inc = function () {
-    // setCount((count) => count + 1);
-    setCount((count) => count + step);
+    dispatch({ type: "increment" });
   };
 
   const defineCount = function (e: ChangeEvent<HTMLInputElement>) {
-    setCount(Number(e.target.value));
+    dispatch({ type: "setCount", payload: +e.target.value });
   };
 
   const defineStep = function (e: ChangeEvent<HTMLInputElement>) {
-    setStep(Number(e.target.value));
+    dispatch({ type: "setSteps", payload: +e.target.value });
   };
 
   const reset = function () {
-    setCount(0);
-    setStep(1);
+    dispatch({ type: "reset" });
   };
 
   return (
